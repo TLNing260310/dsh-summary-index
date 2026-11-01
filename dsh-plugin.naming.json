@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "registryOwner": "local",
+  "coordinate": "local/dsh-summary-index",
+  "packageName": "dsh-summary-index",
+  "loaderId": "dsh-summary-index",
+  "pluginName": "dsh-summary-index",
+  "version": "0.1.0",
+  "description": "Non-invasive structured index and probe layer for DSH compaction summaries.",
+  "toolPrefix": "sumidx_",
+  "tools": [
+    {
+      "name": "sumidx_search",
+      "kind": "read",
+      "mutates": false,
+      "description": "Search this session's admitted or quarantined summary-index entries."
+    },
+    {
+      "name": "sumidx_read",
+      "kind": "read",
+      "mutates": false,
+      "description": "Read a structured entry, search source events, or read one exact source event by seq."
+    },
+    {
+      "name": "sumidx_probe",
+      "kind": "probe",
+      "mutates": false,
+      "description": "Inspect/run deterministic reachability probes or generate recall probe questions."
+    }
+  ],
+  "sessionEventChannels": [
+    {
+      "name": "session/event",
+      "mode": "emit",
+      "filter": {
+        "types": [
+          "compaction/summary"
+        ]
+      },
+      "writesSessionLog": false
+    }
+  ],
+  "cordisEventChannels": [
+    {
+      "name": "agent/pre-step",
+      "mode": "waterfall",
+      "purpose": "inject at most one index/salvage card per new compaction",
+      "writesSessionLogDirectly": false,
+      "modelVisibleInjection": true
+    }
+  ],
+  "httpRoutes": [],
+  "compactionService": {
+    "registers": false,
+    "replacesBackend": false
+  },
+  "storageNamespaces": [
+    {
+      "name": "dsh-summary-index/v1",
+      "location": "DSH_HOME/dsh-summary-index/v1",
+      "format": "append-only JSONL per session",
+      "readOnlyTools": true
+    }
+  ],
+  "conflictPolicy": {
+    "toolNames": "sumidx_ prefix; duplicate registrations must fail loudly",
+    "sessionEvents": "observer only; never vetoes or mutates",
+    "compaction": "no service registration; compatible with any backend that emits standard compaction/summary events",
+    "httpRoutes": "none"
+  },
+  "configSchema": "exported Schemastery Config",
+  "configKeys": [
+    "enabled",
+    "guardMode",
+    "inject",
+    "injectMaxChars",
+    "injectMaxAnchors",
+    "summarizeMinChars",
+    "summarizeMinNodes",
+    "maxAnchors",
+    "maxEventChars",
+    "maxTotalSourceChars",
+    "maxSectionChars",
+    "probeLimit",
+    "backfillLimit",
+    "maxSearchResults",
+    "maxReadChars",
+    "maxStoreReadBytes",
+    "maxEntryBytes",
+    "maxTrackedSessions",
+    "indexRoot"
+  ],
+  "activation": {
+    "exports": [
+      "name",
+      "inject",
+      "Config",
+      "apply"
+    ],
+    "requiresServices": [
+      "tools"
+    ],
+    "waitsForInjectedServices": true,
+    "registersCompactionService": false
+  },
+  "permissions": {
+    "readsSessionEvents": true,
+    "readsLiveSessionBySeq": true,
+    "writesIndexJsonl": true,
+    "writesSessionLogDirectly": false,
+    "modelVisibleInjection": true,
+    "canDisableModelVisibleInjection": true
+  }
+}

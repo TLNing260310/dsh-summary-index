@@ -1,0 +1,100 @@
+{
+  "name": "dsh-summary-index",
+  "version": "0.1.0",
+  "description": "Non-invasive structured index, deterministic anchor guard, and probe evaluation for DSH compaction summaries.",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./core": "./src/core.mjs",
+    "./store": "./src/store.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/**",
+    "test/**",
+    "scripts/**",
+    "docs/**",
+    "cordis.patch.yml",
+    "dsh-plugin.naming.json",
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "LICENSE",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "compaction",
+    "summary-index",
+    "probe-evaluation"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.2 <5",
+    "@deepseek-ai/dsh-llm": ">=0.1.5-rc.3 <0.3.0",
+    "@deepseek-ai/dsh-session": ">=0.1.5-rc.3 <0.3.0",
+    "@deepseek-ai/dsh-tools": ">=0.1.5-rc.3 <0.3.0",
+    "@deepseek-ai/schemastery": ">=3.18.4 <4",
+    "@deepseek-ai/dsh": ">=0.1.5-rc.3 <0.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-llm": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-session": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "test": "node --test test/core.test.mjs test/store.test.mjs test/plugin.test.mjs",
+    "check": "node --check src/index.mjs && node --check src/core.mjs && node --check src/store.mjs && node --check src/text.mjs && node scripts/verify-naming.mjs",
+    "verify:naming": "node scripts/verify-naming.mjs",
+    "prepack": "node scripts/verify-naming.mjs",
+    "prepublishOnly": "npm test && npm run check"
+  },
+  "author": "TLNing260310",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TLNing260310/dsh-summary-index.git"
+  },
+  "homepage": "https://github.com/TLNing260310/dsh-summary-index#readme",
+  "bugs": {
+    "url": "https://github.com/TLNing260310/dsh-summary-index/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.5",
+    "@deepseek-ai/cosmokit": "1.8.6",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-session": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2",
+    "@deepseek-ai/schemastery": "3.18.5"
+  }
+}

@@ -1,0 +1,18 @@
+# dsh-summary-index bundle patch.
+# This row only installs an observer and three read-only `sumidx_*` tools.
+# It intentionally does not insert or replace any compaction backend.
+- insert:
+    - id: summary-index
+      name: 'dsh-summary-index'
+      config:
+        enabled: true
+        guardMode: enforce
+        inject: true
+        summarizeMinChars: 512
+        summarizeMinNodes: 2
+        maxAnchors: 256
+        injectMaxChars: 1800
+        injectMaxAnchors: 14
+        maxTotalSourceChars: 12000000
+        probeLimit: 24
+        backfillLimit: 8

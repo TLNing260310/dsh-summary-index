@@ -1,0 +1,76 @@
+name: Bug report
+description: Report a crash, missing index, false quarantine, or DSH compatibility issue
+title: '[bug] '
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project is an AI-assisted alpha/demo. Please remove credentials and full session text from logs.
+  - type: input
+    id: plugin-version
+    attributes:
+      label: dsh-summary-index version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: dsh-version
+    attributes:
+      label: DSH runtime version
+      placeholder: 0.2.1-rc.2
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS and Node version
+      placeholder: Windows 11, Node 24.21.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Install method
+      options:
+        - dsh plugin add (npm)
+        - dsh plugin add (GitHub tarball)
+        - dsh plugin add (GitHub git spec)
+        - local tarball
+        - DSH Desktop plugin manager
+        - other
+    validations:
+      required: true
+  - type: input
+    id: compaction
+    attributes:
+      label: Compaction backend
+      description: For example dsh-context-zip, dsh-minimal-context, basic backend, custom
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Install...
+        2. Run /compact...
+        3. Call sumidx_search...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and sanitized logs
+      description: Remove credentials, raw session content, and personal data first.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Optional diagnostics
+      description: Output of sumidx_probe action=status, relevant guard reason codes, and whether the index was admitted or quarantined.

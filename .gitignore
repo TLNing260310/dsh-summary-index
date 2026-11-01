@@ -1,0 +1,8 @@
+node_modules/
+.compat-test/
+.test-tmp/
+dist/
+.tmp-*
+*.tgz
+.dsh/
+coverage/

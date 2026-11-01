@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a DSH version adapter, probe, retention rule, or UX improvement
+title: '[feature] '
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the problem first. This plugin intentionally does not replace the compaction backend.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: DSH / compaction compatibility notes
+      description: Mention any event payload, tool, or session-format assumptions.
