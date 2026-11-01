@@ -384,6 +384,18 @@ defineTool 注册、session/event 观察、pre-step 单次注入、malformed com
 [GitHub Issues](https://github.com/TLNing260310/dsh-summary-index/issues)，安全敏感
 内容请使用 private security advisory。
 
+## 参与贡献
+
+这是一个 AI 辅助完成的 demo，非常欢迎真实用户报告使用问题和提交 PR：
+
+- Bug / 兼容性 / 安装问题：[GitHub Issues](https://github.com/TLNing260310/dsh-summary-index/issues)
+- 设计讨论：[GitHub Discussions](https://github.com/TLNing260310/dsh-summary-index/discussions)
+- 贡献流程：[CONTRIBUTING.md](CONTRIBUTING.md)
+- 安全敏感报告：请使用 GitHub private security advisory，不要在公开 issue 中放凭据或完整会话原文。
+
+提交前请附上 DSH 版本、插件版本、安装方式、压缩后端、复现步骤和经过脱敏的
+`sumidx_probe action=status` 输出。欢迎在 PR 中补充测试、版本适配和探针改进。
+
 ## License
 
 MIT
