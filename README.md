@@ -303,13 +303,15 @@ bundle 列表；当前包同时带有 `dsh.bundle.patch` 和 `cordis.patch.yml`�
 npm 可以直接从 GitHub Release 下载本包，无需等待 npm registry 发布：
 
 ```powershell
-npm install --global github:TLNing260310/dsh-summary-index
-# 或
 npm install --global `
   https://github.com/TLNing260310/dsh-summary-index/releases/download/v0.1.0/dsh-summary-index-0.1.0.tgz
 ```
 
-`npm install` 只负责下载；DSH profile 注册仍建议使用：
+如果本机 npm 对 GitHub HTTPS 报 `UNABLE_TO_VERIFY_LEAF_SIGNATURE`，可以在该命令前
+临时设置 `NODE_OPTIONS=--use-system-ca`。
+
+`npm install` 只负责下载；DSH profile 注册仍建议使用下面这条命令，它同时完成下载与
+bundle 注册：
 
 ```powershell
 dsh plugin --profile <profile> add github:TLNing260310/dsh-summary-index
