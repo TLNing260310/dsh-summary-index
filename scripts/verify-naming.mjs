@@ -15,6 +15,7 @@ assert.equal(naming.packageName, pkg.name);
 assert.equal(naming.pluginName, plugin.name);
 assert.equal(naming.loaderId, 'dsh-summary-index');
 assert.equal(naming.version, pkg.version);
+assert.equal(plugin.PLUGIN_VERSION, pkg.version);
 assert.match(naming.toolPrefix, /^[a-z][a-z0-9_]*_$/);
 assert.equal(naming.configSchema, 'exported Schemastery Config');
 assert.deepEqual([...naming.configKeys].sort(), Object.keys(plugin.Config.dict).sort());

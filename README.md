@@ -273,7 +273,7 @@ dsh plugin --profile <profile> add dsh-summary-index
 
 ```powershell
 dsh plugin --profile <profile> add `
-  https://github.com/TLNing260310/dsh-summary-index/releases/download/v0.1.0/dsh-summary-index-0.1.0.tgz
+  https://github.com/TLNing260310/dsh-summary-index/releases/download/v0.1.1/dsh-summary-index-0.1.1.tgz
 ```
 
 ### 方式 C：从 GitHub 仓库 spec 安装并注册
@@ -286,7 +286,7 @@ dsh plugin --profile <profile> add github:TLNing260310/dsh-summary-index
 
 ```powershell
 dsh plugin --profile <profile> add `
-  file:D:/AI_work_project/dsh-summary-index/dist/dsh-summary-index-0.1.0.tgz
+  file:D:/AI_work_project/dsh-summary-index/dist/dsh-summary-index-0.1.1.tgz
 ```
 
 `dsh plugin` 实际在 profile 目录调用 pnpm，并按安装后的 manifest 自动 reconcile
@@ -304,7 +304,7 @@ npm 可以直接从 GitHub Release 下载本包，无需等待 npm registry 发�
 
 ```powershell
 npm install --global `
-  https://github.com/TLNing260310/dsh-summary-index/releases/download/v0.1.0/dsh-summary-index-0.1.0.tgz
+  https://github.com/TLNing260310/dsh-summary-index/releases/download/v0.1.1/dsh-summary-index-0.1.1.tgz
 ```
 
 如果本机 npm 对 GitHub HTTPS 报 `UNABLE_TO_VERIFY_LEAF_SIGNATURE`，可以在该命令前

@@ -1,3 +1,4 @@
+import { PLUGIN_VERSION } from './version.mjs';
 import {
   clip,
   contentBlocksToText,
@@ -531,7 +532,7 @@ export function buildIndexEntry(input) {
   return {
     schema: ENTRY_SCHEMA,
     id,
-    plugin: { name: 'dsh-summary-index', version: '0.1.0' },
+    plugin: { name: 'dsh-summary-index', version: PLUGIN_VERSION },
     createdAt: Number.isSafeInteger(input.now) ? input.now : Date.now(),
     sessionId: String(input.sessionId),
     workspace: typeof input.workspace === 'string' ? input.workspace : undefined,

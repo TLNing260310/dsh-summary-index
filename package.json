@@ -1,6 +1,6 @@
 {
   "name": "dsh-summary-index",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Non-invasive structured index, deterministic anchor guard, and probe evaluation for DSH compaction summaries.",
   "license": "MIT",
   "type": "module",

@@ -466,3 +466,47 @@ test('maxTrackedSessions eviction does not break retrieval for an older live ses
     await rm(root, { recursive: true, force: true });
   }
 });
+test('a resumed session object with the same id gets its own index card injection', async () => {
+  const root = join(TEST_TMP, randomUUID());
+  await mkdir(root, { recursive: true });
+  try {
+    const first = new FakeSession(makeEvents());
+    const h = harness(first, {
+      indexRoot: root,
+      summarizeMinChars: 0,
+      summarizeMinNodes: 0,
+    });
+    await emit(h, first, first.eventAt(4));
+    const firstDecision = await preStep(h, first);
+    assert.equal(firstDecision.messages.length, 1);
+
+    // Same durable session id, different Session instance (resume/reopen in the
+    // same process). The old per-object injection cache must not suppress the
+    // card for the new model-visible history.
+    const resumed = new FakeSession(makeEvents());
+    resumed.header.id = first.header.id;
+    resumed.id = first.id;
+    const resumedDecision = await preStep(h, resumed);
+    assert.equal(resumedDecision.messages.length, 1);
+    assert.match(resumedDecision.messages[0].content[0].text, /Structured compaction index admitted/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+test('tool calls fail soft when session event loading throws', async () => {
+  const root = join(TEST_TMP, randomUUID());
+  await mkdir(root, { recursive: true });
+  try {
+    const session = new FakeSession([]);
+    session.snapshotEvents = () => { throw new Error('synthetic snapshot failure'); };
+    const h = harness(session, { indexRoot: root });
+    const search = await h.tools.get('sumidx_search').execute(
+      { query: 'anything', status: 'all', limit: 5 },
+      { agent: { session } },
+    );
+    assert.match(search.text, /No matching summary-index entries/);
+    assert.ok(h.warnings.some((warning) => /session preparation failed/.test(warning)));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

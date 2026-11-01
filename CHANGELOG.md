@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+
+- Added a Schemastery `Config` export and loader-visible defaults.
+- Bounded session/state maps with `maxTrackedSessions` and session-instance-aware caches.
+- Added fail-soft preparation, per-seq read containment, and same-id resume card injection regression tests.
+- Clarified GitHub Release, DSH `plugin add`, npm download, and npmjs publishing paths.
+
 ## 0.1.0
 
 - Added non-invasive `compaction/summary` observer, five-section parser, deterministic P0 anchor extraction, and append-only session index.

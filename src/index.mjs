@@ -20,6 +20,9 @@ import {
   searchSourceRecords,
 } from './core.mjs';
 import { SummaryIndexStore } from './store.mjs';
+import { PLUGIN_VERSION } from './version.mjs';
+
+export { PLUGIN_VERSION };
 import { charPage, contentBlocksToText, positiveInt } from './text.mjs';
 
 export const name = 'dsh-summary-index';
@@ -187,11 +190,10 @@ export function apply(ctx, config = {}) {
   const entriesBySession = new Map();
   const loadPromises = new Map();
   const processing = new Map();
-  const processedCompactions = new Set();
   const skippedCompactions = new Set();
   const pendingSessionWork = new Map();
   const injectedMarkers = new Map();
-  const backfilledSessions = new Set();
+  const backfilledSessions = new Map();
   const backfillPromises = new Map();
   const lastScannedEventSeq = new Map();
   const latestSummaryCache = new Map();
@@ -295,8 +297,12 @@ export function apply(ctx, config = {}) {
     const cached = latestSummaryCache.get(sessionId);
     if (cached?.session === session) return cached.seq;
     let seq = null;
-    for (const event of session.snapshotEvents()) {
-      if (event.type === 'compaction/summary') seq = event.seq;
+    try {
+      for (const event of session.snapshotEvents()) {
+        if (event.type === 'compaction/summary') seq = event.seq;
+      }
+    } catch (error) {
+      logWarn('could not scan session events for the latest compaction summary', error);
     }
     latestSummaryCache.set(sessionId, { session, seq });
     return seq;
@@ -311,7 +317,6 @@ export function apply(ctx, config = {}) {
     const existing = entriesBySession.get(sessionId)?.get(entryId);
     if (existing !== undefined) return existing;
     if (skippedCompactions.has(sessionId + '|' + compactionId)) return null;
-    if (processedCompactions.has(sessionId + '|' + compactionId)) return null;
     const inFlight = processing.get(sessionId + '|' + compactionId);
     if (inFlight !== undefined) return inFlight;
 
@@ -322,8 +327,12 @@ export function apply(ctx, config = {}) {
         : [];
       const sourceEvents = [];
       for (const seq of shadowedSeqs) {
-        const source = session.eventAt(seq);
-        if (source !== undefined) sourceEvents.push(source);
+        try {
+          const source = session.eventAt(seq);
+          if (source !== undefined) sourceEvents.push(source);
+        } catch (error) {
+          logWarn('source event seq=' + seq + ' could not be read; the entry will be quarantined', error);
+        }
       }
       const normalized = normalizeSourceEvents(sourceEvents, {
         maxEventChars: cfg.maxEventChars,
@@ -359,7 +368,6 @@ export function apply(ctx, config = {}) {
       cacheEntry(sessionId, entry);
       try {
         await store.append(sessionId, entry);
-        rememberBoundedKey(processedCompactions, sessionId + '|' + compactionId);
       } catch (error) {
         logWarn('failed to persist index entry ' + entry.id + '; in-memory retrieval remains available', error);
       }
@@ -379,7 +387,7 @@ export function apply(ctx, config = {}) {
 
   async function backfillSession(session) {
     const sessionId = sessionIdOf(session);
-    if (!cfg.enabled || disposed || backfilledSessions.has(sessionId)) return;
+    if (!cfg.enabled || disposed || backfilledSessions.get(sessionId) === session) return;
     const existing = backfillPromises.get(sessionId);
     if (existing !== undefined) return existing;
     const work = (async () => {
@@ -392,8 +400,8 @@ export function apply(ctx, config = {}) {
       if (summaries.length > 0) {
         latestSummaryCache.set(sessionId, { session, seq: summaries.at(-1).seq });
       }
-      lastScannedEventSeq.set(sessionId, scanTo);
-      backfilledSessions.add(sessionId);
+      lastScannedEventSeq.set(sessionId, { session, seq: scanTo });
+      backfilledSessions.set(sessionId, session);
     })();
     backfillPromises.set(sessionId, work);
     try {
@@ -405,7 +413,8 @@ export function apply(ctx, config = {}) {
 
   async function scanNewSummaries(session) {
     const sessionId = sessionIdOf(session);
-    const from = lastScannedEventSeq.get(sessionId) ?? 0;
+    const previous = lastScannedEventSeq.get(sessionId);
+    const from = previous?.session === session ? previous.seq : 0;
     const to = session.seq;
     if (to <= from) return;
     const events = session.snapshotEvents(from, to);
@@ -414,17 +423,27 @@ export function apply(ctx, config = {}) {
       latestSummaryCache.set(sessionId, { session, seq: event.seq });
       await indexSummaryEvent(session, event);
     }
-    lastScannedEventSeq.set(sessionId, to);
+    lastScannedEventSeq.set(sessionId, { session, seq: to });
   }
 
   async function prepareSession(session) {
-    await ensureSessionLoaded(session);
-    await backfillSession(session);
-    // Redundant incremental scan: session/event is the primary path, but a
-    // missed fire-and-forget notification must not silently drop an index.
-    await scanNewSummaries(session);
+    try {
+      await ensureSessionLoaded(session);
+      await backfillSession(session);
+      // Redundant incremental scan: session/event is the primary path, but a
+      // missed fire-and-forget notification must not silently drop an index.
+      await scanNewSummaries(session);
+    } catch (error) {
+      logWarn('session preparation failed; continuing with the current in-memory index', error);
+    }
     const pending = pendingSessionWork.get(sessionIdOf(session));
-    if (pending !== undefined) await pending;
+    if (pending !== undefined) {
+      try {
+        await pending;
+      } catch (error) {
+        logWarn('pending summarization work failed', error);
+      }
+    }
   }
 
   async function refreshProbes(session, entry, persist = false) {
@@ -487,9 +506,10 @@ export function apply(ctx, config = {}) {
       if (entry === undefined) return decision;
 
       const marker = entry.id + '@' + entry.summarySeq + ':' + (entry.admission?.status ?? 'unknown');
-      if (injectedMarkers.get(sessionId) === marker) return decision;
+      const priorInjection = injectedMarkers.get(sessionId);
+      if (priorInjection?.session === session && priorInjection.marker === marker) return decision;
       if (alreadyHasCard(session, entry)) {
-        injectedMarkers.set(sessionId, marker);
+        injectedMarkers.set(sessionId, { session, marker });
         return decision;
       }
 
@@ -497,9 +517,10 @@ export function apply(ctx, config = {}) {
       if (signal?.aborted) return decision;
       if (refreshed.summarySeq !== latestSummarySeq(session)) return decision;
       const finalMarker = refreshed.id + '@' + refreshed.summarySeq + ':' + (refreshed.admission?.status ?? 'unknown');
-      if (injectedMarkers.get(sessionId) === finalMarker) return decision;
+      const finalInjection = injectedMarkers.get(sessionId);
+      if (finalInjection?.session === session && finalInjection.marker === finalMarker) return decision;
       if (alreadyHasCard(session, refreshed)) {
-        injectedMarkers.set(sessionId, finalMarker);
+        injectedMarkers.set(sessionId, { session, marker: finalMarker });
         return decision;
       }
       const text = buildInjectionCard(refreshed, {
@@ -511,7 +532,7 @@ export function apply(ctx, config = {}) {
         content: [{ type: 'text', text }],
         source: producerSource(),
       });
-      injectedMarkers.set(sessionId, finalMarker);
+      injectedMarkers.set(sessionId, { session, marker: finalMarker });
       return {
         ...decision,
         messages: [...(decision.messages ?? []), message],
